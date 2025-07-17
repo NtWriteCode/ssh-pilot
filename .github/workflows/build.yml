@@ -1,0 +1,79 @@
+name: 🚁 Build SSH Pilot
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build Binaries
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+          
+    - name: Make build script executable
+      run: chmod +x build.sh
+      
+    - name: Build binaries
+      run: ./build.sh
+      
+    - name: Upload Linux AMD64 
+      uses: actions/upload-artifact@v4
+      with:
+        name: ssh-pilot-linux-amd64
+        path: builds/ssh-pilot-linux-amd64
+        retention-days: 30
+
+    - name: Upload Linux ARM64
+      uses: actions/upload-artifact@v4
+      with:
+        name: ssh-pilot-linux-arm64
+        path: builds/ssh-pilot-linux-arm64
+        retention-days: 30
+
+    - name: Upload Linux ARM
+      uses: actions/upload-artifact@v4
+      with:
+        name: ssh-pilot-linux-arm
+        path: builds/ssh-pilot-linux-arm
+        retention-days: 30
+
+    - name: Upload macOS AMD64
+      uses: actions/upload-artifact@v4
+      with:
+        name: ssh-pilot-darwin-amd64
+        path: builds/ssh-pilot-darwin-amd64
+        retention-days: 30
+
+    - name: Upload macOS ARM64
+      uses: actions/upload-artifact@v4
+      with:
+        name: ssh-pilot-darwin-arm64
+        path: builds/ssh-pilot-darwin-arm64
+        retention-days: 30
+
+    - name: Upload Windows AMD64
+      uses: actions/upload-artifact@v4
+      with:
+        name: ssh-pilot-windows-amd64
+        path: builds/ssh-pilot-windows-amd64.exe
+        retention-days: 30
+        
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: builds/*
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
